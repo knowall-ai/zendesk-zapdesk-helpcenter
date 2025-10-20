@@ -161,3 +161,7 @@ MIT
 ## Support
 
 For issues and questions, contact support@knowall.ai
+
+---
+
+**Latest Update**: Added Zendesk API integration for posting public comments to tickets.
