@@ -17,6 +17,13 @@ function App() {
   const [qrError, setQrError] = useState(null)
 
   useEffect(() => {
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search)
+    const ticketIdFromUrl = urlParams.get('ticket_id')
+    const agentNameFromUrl = urlParams.get('agent_name')
+
+    console.log('URL Parameters:', { ticketIdFromUrl, agentNameFromUrl })
+
     // Initialize Zendesk ZAF Client
     const client = window.ZAFClient?.init()
     setZafClient(client)
@@ -105,12 +112,29 @@ function App() {
       // Resize iframe
       client.invoke('resize', { width: '100%', height: '700px' })
     } else {
-      // For development without Zendesk
-      setAgent({
-        name: 'Test Agent (Dev Mode)',
-        email: 'test@knowall.ai',
-        avatarUrl: ''
-      })
+      // No ZAF client - check URL parameters (iframe mode)
+      if (agentNameFromUrl) {
+        console.log('Using agent name from URL:', agentNameFromUrl)
+        // Format the agent name: replace dashes/underscores with spaces and capitalize
+        const formattedName = agentNameFromUrl
+          .replace(/[-_]/g, ' ')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ')
+
+        setAgent({
+          name: formattedName,
+          email: '',
+          avatarUrl: ''
+        })
+      } else {
+        // Fallback for development
+        setAgent({
+          name: 'Test Agent (Dev Mode)',
+          email: 'test@knowall.ai',
+          avatarUrl: ''
+        })
+      }
       setLightningAddress(DEFAULT_LIGHTNING_ADDRESS)
       setLoading(false)
     }
@@ -149,7 +173,13 @@ function App() {
 
   const handleSubmit = async () => {
     if (!zafClient) {
-      alert('Zendesk client not initialized')
+      // No ZAF client available (iframe mode) - show confirmation message
+      const confirmMessage = message
+        ? `Thank you for your ${selectedSats.toLocaleString()} sats tip!\n\nYour message: "${message}"\n\nPlease scan the QR code with your Lightning wallet to complete the payment.`
+        : `Thank you for your ${selectedSats.toLocaleString()} sats tip!\n\nPlease scan the QR code with your Lightning wallet to complete the payment.`
+
+      alert(confirmMessage)
+      setMessage('')
       return
     }
 
