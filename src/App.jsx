@@ -7,6 +7,7 @@ const DEFAULT_LIGHTNING_ADDRESS = 'covertbrian73@walletofsatoshi.com'
 function App() {
   const [zafClient, setZafClient] = useState(null)
   const [agent, setAgent] = useState(null)
+  const [ticketId, setTicketId] = useState(null)
   const [lightningAddress, setLightningAddress] = useState(DEFAULT_LIGHTNING_ADDRESS)
   const [selectedSats, setSelectedSats] = useState(100)
   const [message, setMessage] = useState('')
@@ -23,6 +24,11 @@ function App() {
     const agentNameFromUrl = urlParams.get('agent_name')
 
     console.log('URL Parameters:', { ticketIdFromUrl, agentNameFromUrl })
+
+    // Store ticket ID from URL
+    if (ticketIdFromUrl) {
+      setTicketId(ticketIdFromUrl)
+    }
 
     // Initialize Zendesk ZAF Client
     const client = window.ZAFClient?.init()
@@ -172,42 +178,40 @@ function App() {
   }
 
   const handleSubmit = async () => {
-    if (!zafClient) {
-      // No ZAF client available (iframe mode) - show confirmation message
-      const confirmMessage = message
-        ? `Thank you for your ${selectedSats.toLocaleString()} sats tip!\n\nYour message: "${message}"\n\nPlease scan the QR code with your Lightning wallet to complete the payment.`
-        : `Thank you for your ${selectedSats.toLocaleString()} sats tip!\n\nPlease scan the QR code with your Lightning wallet to complete the payment.`
-
-      alert(confirmMessage)
-      setMessage('')
+    if (!ticketId) {
+      alert('Error: Ticket ID not found. Please refresh the page.')
       return
     }
 
     setSubmitting(true)
 
     try {
-      const commentText = `⚡ Lightning Tip Sent: ${selectedSats.toLocaleString()} sats${message ? `\n\nMessage: ${message}` : ''}\n\nTip sent via Zapdesk by KnowAll AI`
-
-      // Add comment to ticket
-      await zafClient.request({
-        url: '/api/v2/requests/{{ticket.id}}/comments.json',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-          request: {
-            comment: {
-              body: commentText,
-              public: false
-            }
-          }
+      // Call our serverless API to post the comment to Zendesk
+      const response = await fetch('/api/post-comment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ticketId: ticketId,
+          message: message,
+          sats: selectedSats,
+          agentName: agent?.name
         })
       })
 
-      alert('Payment marked as complete! Comment added to ticket.')
-      setMessage('')
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        alert('Thank you! Your tip has been recorded and a public comment has been added to the ticket.')
+        setMessage('')
+      } else {
+        console.error('API error:', data)
+        alert(`Failed to post comment: ${data.error || 'Unknown error'}`)
+      }
     } catch (error) {
       console.error('Error submitting comment:', error)
-      alert('Failed to add comment. Please try again.')
+      alert('Failed to post comment. Please try again or contact support.')
     } finally {
       setSubmitting(false)
     }
