@@ -31,7 +31,10 @@
       "Bash(vercel --version)",
       "Bash(git commit -m \"Trigger deployment via GitHub\")",
       "Bash(gh browse:*)",
-      "Bash(gh --version:*)"
+      "Bash(gh --version:*)",
+      "Bash(git log:*)",
+      "Bash(gh api:*)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []
