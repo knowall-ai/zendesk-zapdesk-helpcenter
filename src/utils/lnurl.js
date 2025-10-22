@@ -3,6 +3,8 @@
  * Handles Lightning Network URL generation and encoding
  */
 
+import { parseLightningAddress } from "../services/lightning.js";
+
 /**
  * Convert Lightning address to LNURL
  * @param {string} lightningAddress - Lightning address (e.g., alice@example.com)
@@ -11,7 +13,7 @@
  */
 export async function lnurlFromLightningAddress(lightningAddress, amountSats) {
   try {
-    const [username, domain] = lightningAddress.split("@");
+    const { username, domain } = parseLightningAddress(lightningAddress);
 
     if (!username || !domain) {
       throw new Error("Invalid Lightning address format");
@@ -53,7 +55,7 @@ export async function lnurlFromLightningAddress(lightningAddress, amountSats) {
  */
 export async function lightningUriFromAddress(lightningAddress, amountSats) {
   try {
-    const [username, domain] = lightningAddress.split("@");
+    const { username, domain } = parseLightningAddress(lightningAddress);
 
     if (!username || !domain) {
       throw new Error("Invalid Lightning address format");

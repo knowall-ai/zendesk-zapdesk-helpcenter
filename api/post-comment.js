@@ -1,4 +1,30 @@
 // Vercel Serverless Function to post comments to Zendesk
+
+/**
+ * Sanitize user input to prevent injection attacks
+ * @param {string} input - User input to sanitize
+ * @returns {string} Sanitized input
+ */
+function sanitizeInput(input) {
+  if (!input || typeof input !== 'string') return ''
+
+  // Remove any HTML/script tags
+  let sanitized = input.replace(/<[^>]*>/g, '')
+
+  // Escape special characters that could be used for injection
+  sanitized = sanitized
+    .replace(/[<>]/g, '') // Remove any remaining angle brackets
+    .trim()
+
+  // Limit length to prevent abuse
+  const MAX_LENGTH = 1000
+  if (sanitized.length > MAX_LENGTH) {
+    sanitized = sanitized.substring(0, MAX_LENGTH)
+  }
+
+  return sanitized
+}
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -23,6 +49,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields: ticketId, sats' })
     }
 
+    // Validate ticketId (should be numeric)
+    const sanitizedTicketId = String(ticketId).replace(/[^0-9]/g, '')
+    if (!sanitizedTicketId) {
+      return res.status(400).json({ error: 'Invalid ticket ID' })
+    }
+
+    // Validate and sanitize sats to prevent injection
+    const sanitizedSats = parseInt(sats, 10)
+    if (isNaN(sanitizedSats) || sanitizedSats < 0 || sanitizedSats > 100000000) {
+      return res.status(400).json({ error: 'Invalid sats amount' })
+    }
+
+    // Sanitize user inputs to prevent injection attacks
+    const sanitizedMessage = sanitizeInput(message)
+    const sanitizedAgentName = sanitizeInput(agentName)
+
     // Get Zendesk credentials from environment variables
     const ZENDESK_SUBDOMAIN = process.env.ZENDESK_SUBDOMAIN
     const ZENDESK_EMAIL = process.env.ZENDESK_EMAIL
@@ -33,11 +75,11 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Server configuration error' })
     }
 
-    // Build the comment text
-    const commentText = `⚡ Lightning Tip Sent: ${Number(sats).toLocaleString()} sats${message ? `\n\nMessage: ${message}` : ''}${agentName ? `\nTo: ${agentName}` : ''}\n\nTip sent via Zapdesk by KnowAll AI`
+    // Build the comment text with sanitized inputs
+    const commentText = `⚡ Lightning Tip Sent: ${sanitizedSats.toLocaleString()} sats${sanitizedMessage ? `\n\nMessage: ${sanitizedMessage}` : ''}${sanitizedAgentName ? `\nTo: ${sanitizedAgentName}` : ''}\n\nTip sent via Zapdesk by KnowAll AI`
 
-    // Make API request to Zendesk
-    const zendeskUrl = `https://${ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/requests/${ticketId}/comments.json`
+    // Make API request to Zendesk with sanitized ticket ID
+    const zendeskUrl = `https://${ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/requests/${sanitizedTicketId}/comments.json`
 
     const authString = Buffer.from(`${ZENDESK_EMAIL}/token:${ZENDESK_API_TOKEN}`).toString('base64')
 

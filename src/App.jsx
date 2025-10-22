@@ -16,6 +16,7 @@ function App() {
   const [qrData, setQrData] = useState(null)
   const [qrLoading, setQrLoading] = useState(false)
   const [qrError, setQrError] = useState(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     // Get URL parameters
@@ -171,7 +172,7 @@ function App() {
     }
 
     generateQR()
-  }, [selectedSats, lightningAddress])
+  }, [selectedSats, lightningAddress, retryCount])
 
   const handleSatSelection = (sats) => {
     setSelectedSats(sats)
@@ -276,7 +277,7 @@ function App() {
           {qrError && (
             <div className="qr-error">
               <p>⚠️ {qrError}</p>
-              <button onClick={() => setSelectedSats(selectedSats)}>Retry</button>
+              <button onClick={() => setRetryCount(prev => prev + 1)}>Retry</button>
             </div>
           )}
           {qrData && !qrLoading && !qrError && (

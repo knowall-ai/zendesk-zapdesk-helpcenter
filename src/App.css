@@ -14,7 +14,6 @@ body {
 .app-container {
   width: 100%;
   max-width: 480px;
-  /* margin: 24px auto 0; */
   background: #fff;
   padding-top: 20px;
 }
@@ -113,7 +112,6 @@ body {
 .sat-buttons {
   display: flex;
   gap: 12px;
-  /* margin-bottom: 24px; */
   justify-content: center;
 }
 
@@ -146,15 +144,11 @@ body {
 .qr-code-container {
   display: flex;
   justify-content: center;
-  /* margin-bottom: 24px; */
-  /* padding: 20px; */
   background: #fff;
-  /* height: 300px; */
   align-items: center;
 }
 
 .qr-code {
-  /* border: 1px solid #e8e8e8; */
   padding: 16px;
   border-radius: 8px;
   max-width: 250px;
@@ -212,7 +206,6 @@ body {
 
 .message-input {
   width: 100%;
-  /* padding: 12px; */
   border: 1px solid #d8dcde;
   border-radius: 6px;
   font-size: 14px;
