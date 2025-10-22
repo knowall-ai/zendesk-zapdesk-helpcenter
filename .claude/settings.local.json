@@ -18,7 +18,20 @@
       "WebFetch(domain:zendesk-zapdesk-helpcenter-6h5xwn3zv.vercel.app)",
       "Bash(npx vercel inspect zendesk-zapdesk-helpcenter-6h5xwn3zv.vercel.app)",
       "Bash(npx vercel inspect zendesk-zapdesk-helpcenter-6h5xwn3zv.vercel.app --logs)",
-      "Bash(npx vercel inspect zendesk-zapdesk-helpcenter-k3ujyms4s.vercel.app)"
+      "Bash(npx vercel inspect zendesk-zapdesk-helpcenter-k3ujyms4s.vercel.app)",
+      "Bash(npx vercel inspect zendesk-zapdesk-helpcenter-aj602zj8u.vercel.app --logs)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd Zendesk API integration for posting comments\n\n- Created serverless API endpoint (/api/post-comment) to post comments to Zendesk\n- Updated widget to call API endpoint instead of using ZAF client in iframe mode\n- Added environment variables configuration for Zendesk credentials\n- Comments are now posted as public messages in Zendesk tickets\n- Added setup documentation for environment variables\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(curl -I https://zendesk-zapdesk-helpcenter-qxyoetuwk.vercel.app)",
+      "Bash(git push)",
+      "Bash(git commit -m \"Fix API function to use ESM syntax\")",
+      "Bash(npx vercel inspect zendesk-zapdesk-helpcenter-6vr8rrw1q.vercel.app --logs --timeout 30000)",
+      "Bash(git mv api api.bak)",
+      "Bash(git mv api.bak api)",
+      "WebFetch(domain:vercel.com)",
+      "Bash(vercel --version)",
+      "Bash(git commit -m \"Trigger deployment via GitHub\")",
+      "Bash(gh browse:*)",
+      "Bash(gh --version:*)"
     ],
     "deny": [],
     "ask": []

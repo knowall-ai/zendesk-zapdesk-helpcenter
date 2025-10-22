@@ -10,7 +10,6 @@ A React-based Bitcoin Lightning tipping widget for Zendesk Help Center that allo
 - 💰 Predefined tip amounts (100, 1000, 10,000 sats)
 - 📱 QR code generation for Lightning payments
 - 💬 Add optional message with tip
-- 📝 Automatic comment creation in ticket history
 
 ## Prerequisites
 
