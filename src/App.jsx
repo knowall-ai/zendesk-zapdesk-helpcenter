@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { generateLightningQR } from './services/lightning'
+import logoSvg from './assets/logo.svg'
 
 // Default fallback Lightning address if agent doesn't have one configured
 const DEFAULT_LIGHTNING_ADDRESS = 'covertbrian73@walletofsatoshi.com'
@@ -17,6 +18,7 @@ function App() {
   const [qrLoading, setQrLoading] = useState(false)
   const [qrError, setQrError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
+  const [agentError, setAgentError] = useState(null)
 
   useEffect(() => {
     // Get URL parameters
@@ -84,35 +86,21 @@ function App() {
             console.log('Agent Lightning address:', agentLightningAddress)
             setLightningAddress(agentLightningAddress)
           } else {
-            // No assignee yet
-            setAgent({
-              name: 'Unassigned',
-              email: 'No agent assigned',
-              avatarUrl: ''
-            })
-            setLightningAddress(DEFAULT_LIGHTNING_ADDRESS)
+            // No assignee yet - show error
+            console.warn('No agent assigned to this ticket')
+            setAgentError('No agent is currently assigned to this ticket. Tips can only be sent to assigned agents.')
           }
 
           setLoading(false)
         } catch (error) {
           console.error('Error fetching agent info:', error)
-          // Set default agent for testing
-          setAgent({
-            name: 'Support Agent',
-            email: 'agent@knowall.ai',
-            avatarUrl: ''
-          })
-          setLightningAddress(DEFAULT_LIGHTNING_ADDRESS)
+          // Show error instead of falling back to defaults
+          setAgentError('Unable to fetch agent information. Please try refreshing the page.')
           setLoading(false)
         }
       }).catch((error) => {
         console.error('Error fetching ticket:', error)
-        setAgent({
-          name: 'Support Agent',
-          email: 'agent@knowall.ai',
-          avatarUrl: ''
-        })
-        setLightningAddress(DEFAULT_LIGHTNING_ADDRESS)
+        setAgentError('Unable to load ticket information. Please try refreshing the page.')
         setLoading(false)
       })
 
@@ -134,15 +122,12 @@ function App() {
           email: '',
           avatarUrl: ''
         })
+        setLightningAddress(DEFAULT_LIGHTNING_ADDRESS)
       } else {
-        // Fallback for development
-        setAgent({
-          name: 'Test Agent (Dev Mode)',
-          email: 'test@knowall.ai',
-          avatarUrl: ''
-        })
+        // No agent info available - show error
+        console.warn('No ZAF client and no agent name in URL')
+        setAgentError('This widget must be used within a Zendesk ticket with an assigned agent.')
       }
-      setLightningAddress(DEFAULT_LIGHTNING_ADDRESS)
       setLoading(false)
     }
   }, [])
@@ -150,7 +135,8 @@ function App() {
   // Generate QR code when sat amount or lightning address changes
   useEffect(() => {
     const generateQR = async () => {
-      if (!lightningAddress) return
+      // Don't generate QR if there's an agent error
+      if (agentError || !lightningAddress) return
 
       setQrLoading(true)
       setQrError(null)
@@ -227,10 +213,43 @@ function App() {
     )
   }
 
+  // Show error state if there's an agent error
+  if (agentError) {
+    return (
+      <div className="app-container">
+        <div className="content">
+          <h2 className="subtitle">
+            <img src={logoSvg} alt="Zapdesk" className="logo-icon" />
+            Tip Your Support Agent
+          </h2>
+
+          <div className="agent-error-container">
+            <div className="error-icon">⚠️</div>
+            <h3 className="error-title">Unable to Process Tip</h3>
+            <p className="error-message">{agentError}</p>
+            <button
+              className="refresh-button"
+              onClick={() => window.location.reload()}
+            >
+              Refresh Page
+            </button>
+          </div>
+
+          <div className="branding">
+            Powered by <a href="https://knowall.ai" target="_blank" rel="noopener noreferrer">Zapdesk from KnowAll AI</a>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="app-container">
       <div className="content">
-        <h2 className="subtitle">⚡ Tip {agent.name} with Bitcoin Lightning</h2>
+        <h2 className="subtitle">
+          <img src={logoSvg} alt="Zapdesk" className="logo-icon" />
+          Tip {agent.name} with Bitcoin Lightning
+        </h2>
 
         <div className="agent-info">
           <div className="agent-avatar">
