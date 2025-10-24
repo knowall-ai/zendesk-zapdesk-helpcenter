@@ -31,14 +31,36 @@ export default async function handler(req, res) {
     ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
     : [
         'https://knowallai.zendesk.com',
-        'https://zendesk-zapdesk-helpcenter.vercel.app',
-        'https://zendesk-zapdesk-helpcenter-git-main-akashjadhav1989-gmailcoms-projects.vercel.app'
+        'https://support.knowall.ai',
+        'https://zendesk-zapdesk-helpcenter.vercel.app'
       ];
 
   const origin = req.headers.origin;
 
+  // Helper function to check if origin is allowed
+  const isOriginAllowed = (origin) => {
+    if (!origin) return false;
+
+    // Check exact matches
+    if (allowedOrigins.includes(origin)) return true;
+
+    // Allow all Vercel preview deployments for this project
+    if (origin.match(/^https:\/\/zendesk-zapdesk-helpcenter-[a-z0-9]+\.vercel\.app$/)) {
+      return true;
+    }
+
+    // Allow Zendesk subdomains if main domain is allowed
+    if (allowedOrigins.some(allowed => allowed.includes('zendesk.com'))) {
+      if (origin.match(/^https:\/\/[a-z0-9-]+\.zendesk\.com$/)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   // Check if origin is allowed
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin && isOriginAllowed(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else if (!origin) {
     // For same-origin requests or when origin header is not present
@@ -55,7 +77,8 @@ export default async function handler(req, res) {
   }
 
   // Reject requests from unauthorized origins
-  if (origin && !allowedOrigins.includes(origin)) {
+  if (origin && !isOriginAllowed(origin)) {
+    console.error('[CORS] Rejected origin:', origin);
     return res.status(403).json({
       error: 'Forbidden',
       message: 'Origin not allowed'
