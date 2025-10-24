@@ -5,11 +5,23 @@
       "headers": [
         {
           "key": "X-Frame-Options",
-          "value": "ALLOWALL"
+          "value": "ALLOW-FROM https://knowallai.zendesk.com"
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors *"
+          "value": "frame-ancestors 'self' https://knowallai.zendesk.com https://support.knowall.ai https://*.zendesk.com"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(), camera=()"
         }
       ]
     }

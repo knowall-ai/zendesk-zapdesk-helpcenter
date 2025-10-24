@@ -26,14 +26,40 @@ function sanitizeInput(input) {
 }
 
 export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  // CORS Configuration - Restrict to allowed origins only
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+    : [
+        'https://knowallai.zendesk.com',
+        'https://zendesk-zapdesk-helpcenter.vercel.app',
+        'https://zendesk-zapdesk-helpcenter-git-main-akashjadhav1989-gmailcoms-projects.vercel.app'
+      ];
+
+  const origin = req.headers.origin;
+
+  // Check if origin is allowed
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // For same-origin requests or when origin header is not present
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   // Handle preflight request
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
+  }
+
+  // Reject requests from unauthorized origins
+  if (origin && !allowedOrigins.includes(origin)) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'Origin not allowed'
+    });
   }
 
   // Only allow POST requests
