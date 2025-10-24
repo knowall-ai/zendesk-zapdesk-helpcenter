@@ -70,49 +70,98 @@ export default async function handler(req, res) {
     const ZENDESK_EMAIL = process.env.ZENDESK_EMAIL
     const ZENDESK_API_TOKEN = process.env.ZENDESK_API_TOKEN
 
+    console.log('[API] Environment check:', {
+      hasSubdomain: !!ZENDESK_SUBDOMAIN,
+      hasEmail: !!ZENDESK_EMAIL,
+      hasToken: !!ZENDESK_API_TOKEN,
+      subdomain: ZENDESK_SUBDOMAIN ? ZENDESK_SUBDOMAIN.substring(0, 3) + '***' : 'missing'
+    })
+
     if (!ZENDESK_SUBDOMAIN || !ZENDESK_EMAIL || !ZENDESK_API_TOKEN) {
-      console.error('Missing Zendesk environment variables')
-      return res.status(500).json({ error: 'Server configuration error' })
+      console.error('Missing Zendesk environment variables:', {
+        subdomain: !!ZENDESK_SUBDOMAIN,
+        email: !!ZENDESK_EMAIL,
+        token: !!ZENDESK_API_TOKEN
+      })
+      return res.status(500).json({
+        error: 'Server configuration error',
+        details: 'Missing Zendesk credentials'
+      })
     }
 
     // Build the comment text with sanitized inputs
     const commentText = `⚡ Lightning Tip Sent: ${sanitizedSats.toLocaleString()} sats${sanitizedMessage ? `\n\nMessage: ${sanitizedMessage}` : ''}${sanitizedAgentName ? `\nTo: ${sanitizedAgentName}` : ''}\n\nTip sent via Zapdesk by KnowAll AI`
 
     // Make API request to Zendesk with sanitized ticket ID
-    const zendeskUrl = `https://${ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/requests/${sanitizedTicketId}/comments.json`
+    // Use tickets endpoint (not requests) for agent authentication
+    const zendeskUrl = `https://${ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/tickets/${sanitizedTicketId}.json`
 
     const authString = Buffer.from(`${ZENDESK_EMAIL}/token:${ZENDESK_API_TOKEN}`).toString('base64')
 
-    const response = await fetch(zendeskUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${authString}`
-      },
-      body: JSON.stringify({
-        request: {
-          comment: {
-            body: commentText,
-            public: true // Make it public so customer can see it
-          }
-        }
-      })
+    console.log('[API] Attempting to post to Zendesk:', {
+      url: zendeskUrl,
+      ticketId: sanitizedTicketId,
+      subdomain: ZENDESK_SUBDOMAIN
     })
+
+    let response
+    try {
+      response = await fetch(zendeskUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${authString}`
+        },
+        body: JSON.stringify({
+          ticket: {
+            comment: {
+              body: commentText,
+              public: true // Make it public so customer can see it
+            }
+          }
+        })
+      })
+    } catch (fetchError) {
+      console.error('[API] Fetch error:', fetchError)
+      return res.status(500).json({
+        error: 'Failed to connect to Zendesk API',
+        message: fetchError.message,
+        details: 'Network error or DNS resolution failure'
+      })
+    }
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Zendesk API error:', errorText)
+      console.error('[API] Zendesk API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
       return res.status(response.status).json({
         error: 'Failed to post comment to Zendesk',
+        status: response.status,
         details: errorText
       })
     }
 
-    const data = await response.json()
+    let data
+    try {
+      const responseText = await response.text()
+      console.log('[API] Zendesk raw response:', responseText)
+      data = JSON.parse(responseText)
+      console.log('[API] Success! Zendesk parsed data:', data)
+    } catch (parseError) {
+      console.error('[API] Failed to parse Zendesk response:', parseError)
+      return res.status(500).json({
+        error: 'Invalid response from Zendesk',
+        message: parseError.message
+      })
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Comment posted successfully',
-      comment: data.comment
+      ticket: data.ticket
     })
 
   } catch (error) {

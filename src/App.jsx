@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { generateLightningQR } from './services/lightning'
+import { POST_COMMENT_API } from './config'
 import logoSvg from './assets/logo.svg'
 
 // Default fallback Lightning address if agent doesn't have one configured
@@ -174,7 +175,8 @@ function App() {
 
     try {
       // Call our serverless API to post the comment to Zendesk
-      const response = await fetch('/api/post-comment', {
+      console.log('[Submit] Posting to API:', POST_COMMENT_API)
+      const response = await fetch(POST_COMMENT_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

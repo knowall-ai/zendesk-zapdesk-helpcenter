@@ -34,7 +34,11 @@
       "Bash(gh --version:*)",
       "Bash(git log:*)",
       "Bash(gh api:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(npx vercel:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(source .env.test)"
     ],
     "deny": [],
     "ask": []
