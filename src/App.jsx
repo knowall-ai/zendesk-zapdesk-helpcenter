@@ -17,6 +17,8 @@ function App() {
   const [qrError, setQrError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [agentError, setAgentError] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [modalContent, setModalContent] = useState({ title: '', message: '', type: 'success' })
 
   useEffect(() => {
     // Get URL parameters
@@ -215,7 +217,12 @@ function App() {
 
   const handleSubmit = async () => {
     if (!ticketId) {
-      alert('Error: Ticket ID not found. Please refresh the page.')
+      setModalContent({
+        title: 'Error',
+        message: 'Ticket ID not found. Please refresh the page.',
+        type: 'error'
+      })
+      setShowModal(true)
       return
     }
 
@@ -240,15 +247,30 @@ function App() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        alert('Thank you! Your tip has been recorded and a public comment has been added to the ticket.')
+        setModalContent({
+          title: 'Tip Recorded Successfully!',
+          message: 'Thank you! Your tip has been recorded and a public comment has been added to the ticket.',
+          type: 'success'
+        })
+        setShowModal(true)
         setMessage('')
       } else {
         console.error('API error:', data)
-        alert(`Failed to post comment: ${data.error || 'Unknown error'}`)
+        setModalContent({
+          title: 'Failed to Post Comment',
+          message: data.error || 'Unknown error occurred. Please try again.',
+          type: 'error'
+        })
+        setShowModal(true)
       }
     } catch (error) {
       console.error('Error submitting comment:', error)
-      alert('Failed to post comment. Please try again or contact support.')
+      setModalContent({
+        title: 'Connection Error',
+        message: 'Failed to post comment. Please check your connection and try again.',
+        type: 'error'
+      })
+      setShowModal(true)
     } finally {
       setSubmitting(false)
     }
@@ -385,6 +407,22 @@ function App() {
           Powered by <a href="https://knowall.ai" target="_blank" rel="noopener noreferrer">Zapdesk from KnowAll AI</a>
         </div>
       </div>
+
+      {/* Custom Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className={`modal-icon ${modalContent.type}`}>
+              {modalContent.type === 'success' ? '✓' : '⚠'}
+            </div>
+            <h3 className="modal-title">{modalContent.title}</h3>
+            <p className="modal-message">{modalContent.message}</p>
+            <button className="modal-button" onClick={() => setShowModal(false)}>
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
