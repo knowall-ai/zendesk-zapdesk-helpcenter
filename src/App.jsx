@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react'
 import { generateLightningQR } from './services/lightning'
-import { POST_COMMENT_API } from './config'
+import { POST_COMMENT_API, GET_AGENT_LIGHTNING_API } from './config'
 import logoSvg from './assets/logo.svg'
-
-// Default fallback Lightning address if agent doesn't have one configured
-const DEFAULT_LIGHTNING_ADDRESS = 'covertbrian73@walletofsatoshi.com'
 
 function App() {
   const [zafClient, setZafClient] = useState(null)
   const [agent, setAgent] = useState(null)
   const [ticketId, setTicketId] = useState(null)
-  const [lightningAddress, setLightningAddress] = useState(DEFAULT_LIGHTNING_ADDRESS)
+  const [lightningAddress, setLightningAddress] = useState(null)
   const [selectedSats, setSelectedSats] = useState(100)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
@@ -71,6 +68,8 @@ function App() {
             const user = userData.user
 
             console.log('Assignee user data:', user)
+            console.log('User fields RAW:', JSON.stringify(user.user_fields, null, 2))
+            console.log('User notes:', user.notes)
 
             setAgent({
               name: user.name || 'Agent',
@@ -79,12 +78,47 @@ function App() {
             })
 
             // Check for Lightning address in user fields or notes
-            const agentLightningAddress =
-              user.user_fields?.lightning_address ||
-              user.notes?.match(/lightning:\s*(\S+@\S+)/i)?.[1] ||
-              DEFAULT_LIGHTNING_ADDRESS
+            // Zendesk user_fields can be an object with field IDs as keys
+            let fromUserField = null
 
-            console.log('Agent Lightning address:', agentLightningAddress)
+            // Try multiple ways to access the field
+            if (user.user_fields) {
+              // Try direct property access (if field name is used)
+              fromUserField = user.user_fields.lightning_address
+
+              console.log('Direct access lightning_address:', fromUserField)
+
+              // If not found, search through all fields for a lightning address value
+              if (!fromUserField) {
+                const fieldEntries = Object.entries(user.user_fields || {})
+                console.log('All user field entries:', fieldEntries)
+
+                for (const [key, value] of fieldEntries) {
+                  console.log(`Checking field ${key}:`, value)
+                  if (typeof value === 'string' && value.includes('@') && value.includes('.')) {
+                    fromUserField = value
+                    console.log('Found lightning address in field:', key, '=', value)
+                    break
+                  }
+                }
+              }
+            }
+
+            const fromNotes = user.notes?.match(/lightning:\s*(\S+@\S+)/i)?.[1]
+
+            console.log('Lightning address from user field:', fromUserField)
+            console.log('Lightning address from notes:', fromNotes)
+
+            const agentLightningAddress = fromUserField || fromNotes
+
+            if (!agentLightningAddress) {
+              console.error('No Lightning address found for agent:', user.name)
+              setAgentError(`No Lightning address configured for agent ${user.name}. Please add a Lightning address to their profile.`)
+              setLoading(false)
+              return
+            }
+
+            console.log('Final Lightning address:', agentLightningAddress)
             setLightningAddress(agentLightningAddress)
           } else {
             // No assignee yet - show error
@@ -108,28 +142,42 @@ function App() {
       // Resize iframe
       client.invoke('resize', { width: '100%', height: '700px' })
     } else {
-      // No ZAF client - check URL parameters (iframe mode)
-      if (agentNameFromUrl) {
-        console.log('Using agent name from URL:', agentNameFromUrl)
-        // Format the agent name: replace dashes/underscores with spaces and capitalize
-        const formattedName = agentNameFromUrl
-          .replace(/[-_]/g, ' ')
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ')
+      // No ZAF client - iframe mode, fetch agent info from API
+      if (ticketIdFromUrl) {
+        console.log('[Iframe Mode] Fetching agent info from API for ticket:', ticketIdFromUrl)
 
-        setAgent({
-          name: formattedName,
-          email: '',
-          avatarUrl: ''
-        })
-        setLightningAddress(DEFAULT_LIGHTNING_ADDRESS)
+        // Fetch agent Lightning address from our API
+        fetch(`${GET_AGENT_LIGHTNING_API}?ticketId=${ticketIdFromUrl}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success && data.agent) {
+              console.log('[Iframe Mode] Agent data received:', data.agent)
+
+              setAgent({
+                name: data.agent.name,
+                email: data.agent.email,
+                avatarUrl: data.agent.avatarUrl
+              })
+
+              setLightningAddress(data.agent.lightningAddress)
+              setLoading(false)
+            } else {
+              console.error('[Iframe Mode] Failed to get agent info:', data)
+              setAgentError(data.message || 'Unable to fetch agent information')
+              setLoading(false)
+            }
+          })
+          .catch(error => {
+            console.error('[Iframe Mode] Error fetching agent info:', error)
+            setAgentError('Unable to fetch agent information. Please try refreshing the page.')
+            setLoading(false)
+          })
       } else {
-        // No agent info available - show error
-        console.warn('No ZAF client and no agent name in URL')
+        // No ticket ID available - show error
+        console.warn('No ZAF client and no ticket ID in URL')
         setAgentError('This widget must be used within a Zendesk ticket with an assigned agent.')
+        setLoading(false)
       }
-      setLoading(false)
     }
   }, [])
 
