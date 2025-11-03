@@ -1,0 +1,58 @@
+{
+  "name": "KnowAll AI - Zapdesk Help Center Theme",
+  "author": "KnowAll AI",
+  "version": "1.0.0",
+  "api_version": 2,
+  "description": "Custom Zendesk Help Center theme with embedded Zapdesk Lightning app for tips and payments",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_zapdesk_app",
+      "label": "Enable Zapdesk Embedded App",
+      "value": true,
+      "help_text": "Toggle the Zapdesk Lightning payment app on/off"
+    },
+    {
+      "type": "text",
+      "id": "api_base_url",
+      "label": "API Base URL",
+      "value": "https://api.knowall.ai",
+      "help_text": "Base URL for KnowAll AI API endpoints"
+    },
+    {
+      "type": "select",
+      "id": "app_placement",
+      "label": "App Placement",
+      "value": "article_footer",
+      "options": [
+        {
+          "label": "Article Footer",
+          "value": "article_footer"
+        },
+        {
+          "label": "Home Page",
+          "value": "home_page"
+        },
+        {
+          "label": "Custom Page Only",
+          "value": "custom_page"
+        }
+      ],
+      "help_text": "Where to display the Zapdesk app"
+    },
+    {
+      "type": "color",
+      "id": "brand_color",
+      "label": "Brand Color",
+      "value": "#F7931A",
+      "help_text": "Primary brand color for the theme"
+    },
+    {
+      "type": "text",
+      "id": "lnurl_endpoint",
+      "label": "LNURL-pay Endpoint",
+      "value": "",
+      "help_text": "Lightning Network LNURL-pay endpoint for tips"
+    }
+  ]
+}

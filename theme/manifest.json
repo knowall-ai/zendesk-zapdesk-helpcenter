@@ -6,53 +6,78 @@
   "description": "Custom Zendesk Help Center theme with embedded Zapdesk Lightning app for tips and payments",
   "settings": [
     {
-      "type": "checkbox",
-      "id": "enable_zapdesk_app",
-      "label": "Enable Zapdesk Embedded App",
-      "value": true,
-      "help_text": "Toggle the Zapdesk Lightning payment app on/off"
-    },
-    {
-      "type": "text",
-      "id": "api_base_url",
-      "label": "API Base URL",
-      "value": "https://api.knowall.ai",
-      "help_text": "Base URL for KnowAll AI API endpoints"
-    },
-    {
-      "type": "select",
-      "id": "app_placement",
-      "label": "App Placement",
-      "value": "article_footer",
-      "options": [
+      "label": "enable_zapdesk_app",
+      "variables": [
         {
-          "label": "Article Footer",
-          "value": "article_footer"
-        },
-        {
-          "label": "Home Page",
-          "value": "home_page"
-        },
-        {
-          "label": "Custom Page Only",
-          "value": "custom_page"
+          "identifier": "enable_zapdesk_app",
+          "type": "checkbox",
+          "description": "Toggle the Zapdesk Lightning payment app on/off",
+          "label": "Enable Zapdesk Embedded App",
+          "value": true
         }
-      ],
-      "help_text": "Where to display the Zapdesk app"
+      ]
     },
     {
-      "type": "color",
-      "id": "brand_color",
-      "label": "Brand Color",
-      "value": "#F7931A",
-      "help_text": "Primary brand color for the theme"
+      "label": "api_base_url",
+      "variables": [
+        {
+          "identifier": "api_base_url",
+          "type": "text",
+          "description": "Base URL for KnowAll AI API endpoints",
+          "label": "API Base URL",
+          "value": "https://api.knowall.ai"
+        }
+      ]
     },
     {
-      "type": "text",
-      "id": "lnurl_endpoint",
-      "label": "LNURL-pay Endpoint",
-      "value": "",
-      "help_text": "Lightning Network LNURL-pay endpoint for tips"
+      "label": "app_placement",
+      "variables": [
+        {
+          "identifier": "app_placement",
+          "type": "select",
+          "description": "Where to display the Zapdesk app",
+          "label": "App Placement",
+          "value": "article_footer",
+          "options": [
+            {
+              "label": "Article Footer",
+              "value": "article_footer"
+            },
+            {
+              "label": "Home Page",
+              "value": "home_page"
+            },
+            {
+              "label": "Custom Page Only",
+              "value": "custom_page"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "brand_color",
+      "variables": [
+        {
+          "identifier": "brand_color",
+          "type": "color",
+          "description": "Primary brand color for the theme",
+          "label": "Brand Color",
+          "value": "#F7931A"
+        }
+      ]
+    },
+    {
+      "label": "lnurl_endpoint",
+      "variables": [
+        {
+          "identifier": "lnurl_endpoint",
+          "type": "text",
+          "description": "Lightning Network LNURL-pay endpoint for tips",
+          "label": "LNURL-pay Endpoint",
+          "value": ""
+        }
+      ]
     }
   ]
 }

@@ -14,7 +14,8 @@ export default defineConfig({
     rollupOptions: {
       external: [],
       output: {
-        globals: {}
+        globals: {},
+        entryFileNames: 'zapdesk-app.bundle.js'
       }
     },
     outDir: '../theme/assets',

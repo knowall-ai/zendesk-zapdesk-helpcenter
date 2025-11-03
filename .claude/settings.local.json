@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run setup:*)",
+      "Bash(zcli --version:*)",
+      "Bash(zcli profiles:list:*)",
+      "Bash(npm run preview:theme:*)",
+      "Bash(npm run build:app:*)",
+      "Bash(zcli themes:preview:*)",
+      "Bash(zcli themes:validate:*)",
+      "WebSearch",
+      "WebFetch(domain:developer.zendesk.com)",
+      "Bash(git clone:*)",
+      "WebFetch(domain:knowall.ai)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
