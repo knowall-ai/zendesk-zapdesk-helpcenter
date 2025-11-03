@@ -1,0 +1,56 @@
+{{!--
+  KnowAll AI - Zapdesk Theme
+  Home Page Template
+--}}
+
+<div class="home-page">
+  <div class="home-hero">
+    <h1 class="home-hero__title">{{t 'welcome'}}</h1>
+    <p class="home-hero__subtitle">{{help_center.name}}</p>
+
+    <div class="search-container mt-4">
+      <form role="search" class="search" data-search>
+        <input type="search"
+               name="query"
+               id="query"
+               placeholder="{{t 'search_placeholder'}}"
+               class="search-input"
+               autocomplete="off" />
+      </form>
+    </div>
+  </div>
+
+  {{#if sections}}
+  <div class="container">
+    <h2 class="mt-4 mb-3">{{t 'browse_sections'}}</h2>
+    <div class="sections-list">
+      {{#each sections}}
+      <a href="{{url}}" class="section-card">
+        <h3 class="section-card__title">{{name}}</h3>
+        {{#if description}}
+        <p class="section-card__description">{{description}}</p>
+        {{/if}}
+      </a>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Zapdesk App Container for Home Page --}}
+  {{#if settings.enable_zapdesk_app}}
+    {{#is settings.app_placement 'home_page'}}
+    <div class="container">
+      <div class="zapdesk-app-container zapdesk-app-container--home-page"
+           data-enable="{{settings.enable_zapdesk_app}}"
+           data-api-base="{{settings.api_base_url}}"
+           data-lnurl-endpoint="{{settings.lnurl_endpoint}}"
+           data-brand-color="{{settings.brand_color}}"
+           data-placement="{{settings.app_placement}}"
+           data-js-url="{{asset 'zapdesk-app.bundle.js'}}"
+           data-css-url="{{asset 'zapdesk-app.css'}}"
+           data-loading="true">
+      </div>
+    </div>
+    {{/is}}
+  {{/if}}
+</div>

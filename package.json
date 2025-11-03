@@ -1,0 +1,35 @@
+{
+  "name": "zendesk-zapdesk-helpcenter",
+  "version": "1.0.0",
+  "description": "Self-hosted Zendesk Help Center theme with embedded Zapdesk Lightning Network payment app",
+  "scripts": {
+    "install:app": "cd zapdesk-app && npm install",
+    "build:app": "cd zapdesk-app && npm run build",
+    "dev:app": "cd zapdesk-app && npm run dev",
+    "preview:theme": "cd theme && zcli themes:preview",
+    "package:theme": "cd theme && zip -r ../knowallai-zapdesk-theme.zip . -x '*.DS_Store' -x '__MACOSX/*'",
+    "build:all": "npm run build:app",
+    "setup": "npm run install:app && npm run build:app",
+    "deploy:help": "echo 'To deploy: 1) npm run build:all 2) npm run package:theme 3) Upload knowallai-zapdesk-theme.zip to Zendesk'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knowall-ai/zendesk-zapdesk-helpcenter.git"
+  },
+  "keywords": [
+    "zendesk",
+    "help-center",
+    "theme",
+    "zapdesk",
+    "lightning-network",
+    "bitcoin",
+    "lnurl",
+    "react"
+  ],
+  "author": "KnowAll AI",
+  "license": "MIT",
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

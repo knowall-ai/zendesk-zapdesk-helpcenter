@@ -1,0 +1,128 @@
+{{!--
+  KnowAll AI - Zapdesk Theme
+  Article Page Template
+--}}
+
+<article class="article-container">
+  <header class="article-header">
+    <nav class="article-breadcrumbs">
+      <a href="{{help_center.url}}">{{help_center.name}}</a>
+      {{#if section}}
+      <span class="breadcrumb-separator">›</span>
+      <a href="{{section.url}}">{{section.name}}</a>
+      {{/if}}
+      {{#if article.category}}
+      <span class="breadcrumb-separator">›</span>
+      <a href="{{article.category.url}}">{{article.category.name}}</a>
+      {{/if}}
+    </nav>
+
+    <h1 class="article-title">{{article.title}}</h1>
+
+    <div class="article-meta">
+      {{#if article.author}}
+      <span class="article-author">{{t 'by'}} {{article.author.name}}</span>
+      {{/if}}
+      {{#if article.created_at}}
+      <span class="article-date"> • {{date article.created_at timeago=true}}</span>
+      {{/if}}
+      {{#if article.edited_at}}
+      <span class="article-edited"> • {{t 'updated'}} {{date article.edited_at timeago=true}}</span>
+      {{/if}}
+    </div>
+  </header>
+
+  <div class="article-body">
+    {{article.body}}
+  </div>
+
+  {{#if article.attachments}}
+  <section class="article-attachments mt-4">
+    <h3>{{t 'attachments'}}</h3>
+    <ul>
+      {{#each article.attachments}}
+      <li>
+        <a href="{{url}}" target="_blank">{{name}}</a>
+      </li>
+      {{/each}}
+    </ul>
+  </section>
+  {{/if}}
+
+  <footer class="article-footer mt-4">
+    {{#if article.labels}}
+    <div class="article-labels">
+      {{#each article.labels}}
+      <span class="label">{{name}}</span>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    <div class="article-actions mt-3">
+      {{#if article.voted}}
+      <span class="article-vote-status">{{t 'thank_you_for_voting'}}</span>
+      {{else}}
+      <div class="article-votes">
+        <span>{{t 'was_this_article_helpful'}}</span>
+        <button type="button" class="article-vote article-vote--up" data-helper="vote" data-item="article" data-type="up" data-id="{{article.id}}">
+          {{t 'yes'}}
+        </button>
+        <button type="button" class="article-vote article-vote--down" data-helper="vote" data-item="article" data-type="down" data-id="{{article.id}}">
+          {{t 'no'}}
+        </button>
+      </div>
+      {{/if}}
+    </div>
+  </footer>
+
+  {{!-- Zapdesk App Container for Article Footer --}}
+  {{#if settings.enable_zapdesk_app}}
+    {{#is settings.app_placement 'article_footer'}}
+    <div class="zapdesk-app-container zapdesk-app-container--article-footer mt-4"
+         data-enable="{{settings.enable_zapdesk_app}}"
+         data-api-base="{{settings.api_base_url}}"
+         data-lnurl-endpoint="{{settings.lnurl_endpoint}}"
+         data-brand-color="{{settings.brand_color}}"
+         data-placement="{{settings.app_placement}}"
+         data-article-id="{{article.id}}"
+         data-js-url="{{asset 'zapdesk-app.bundle.js'}}"
+         data-css-url="{{asset 'zapdesk-app.css'}}"
+         data-loading="true">
+    </div>
+    {{/is}}
+  {{/if}}
+
+  {{#if article.comments_disabled}}
+  <section class="article-comments-disabled mt-4">
+    <p class="text-muted">{{t 'comments_disabled'}}</p>
+  </section>
+  {{else}}
+  <section class="article-comments mt-4">
+    <h3>{{t 'comments'}}</h3>
+    {{#if article.comments}}
+    <div class="comments-list">
+      {{#each article.comments}}
+      <div class="comment" id="comment-{{id}}">
+        <div class="comment-header">
+          <span class="comment-author">{{author.name}}</span>
+          <span class="comment-date">{{date created_at timeago=true}}</span>
+        </div>
+        <div class="comment-body">
+          {{body}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if current_user}}
+    <form class="comment-form mt-3">
+      <textarea name="comment-body" placeholder="{{t 'add_comment'}}" rows="4"></textarea>
+      <button type="submit" class="button">{{t 'submit'}}</button>
+    </form>
+    {{else}}
+    <p class="text-muted">{{t 'sign_in_to_comment'}}</p>
+    {{/if}}
+  </section>
+  {{/if}}
+</article>

@@ -1,0 +1,45 @@
+{{!--
+  KnowAll AI - Zapdesk Theme
+  Custom Page: Zapdesk App
+  This is a dedicated page for the Zapdesk Lightning app
+  Access URL: /hc/{locale}/p/zapdesk-app
+--}}
+
+<div class="zapdesk-custom-page">
+  <div class="container">
+    <header class="page-header mt-4">
+      <h1>Zapdesk Lightning Tips</h1>
+      <p class="text-muted">Support content creators with Lightning Network micropayments</p>
+    </header>
+
+    {{!-- Main Zapdesk App Container for Custom Page --}}
+    {{#if settings.enable_zapdesk_app}}
+    <div class="zapdesk-app-container zapdesk-app-container--custom-page mt-4"
+         data-enable="{{settings.enable_zapdesk_app}}"
+         data-api-base="{{settings.api_base_url}}"
+         data-lnurl-endpoint="{{settings.lnurl_endpoint}}"
+         data-brand-color="{{settings.brand_color}}"
+         data-placement="custom_page"
+         data-js-url="{{asset 'zapdesk-app.bundle.js'}}"
+         data-css-url="{{asset 'zapdesk-app.css'}}"
+         data-loading="true">
+    </div>
+    {{else}}
+    <div class="alert alert-info mt-4">
+      <p>The Zapdesk app is currently disabled. Please enable it in the theme settings.</p>
+    </div>
+    {{/if}}
+
+    <section class="page-info mt-4">
+      <h2>About Zapdesk</h2>
+      <p>
+        Zapdesk is a Lightning Network-powered tipping solution that allows you to support
+        content creators and support agents directly with Bitcoin micropayments.
+      </p>
+      <p>
+        Using LNURL-pay technology, you can send tips instantly with minimal fees,
+        making it perfect for appreciating helpful content and excellent support.
+      </p>
+    </section>
+  </div>
+</div>

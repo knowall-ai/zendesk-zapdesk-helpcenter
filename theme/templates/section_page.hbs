@@ -1,0 +1,64 @@
+{{!--
+  KnowAll AI - Zapdesk Theme
+  Section Page Template
+--}}
+
+<div class="section-page">
+  <div class="container">
+    <nav class="breadcrumbs mt-3">
+      <a href="{{help_center.url}}">{{help_center.name}}</a>
+      <span class="breadcrumb-separator">›</span>
+      <span>{{section.name}}</span>
+    </nav>
+
+    <header class="section-header mt-4">
+      <h1>{{section.name}}</h1>
+      {{#if section.description}}
+      <p class="section-description text-muted">{{section.description}}</p>
+      {{/if}}
+    </header>
+
+    {{#if section.categories}}
+    <section class="categories-section mt-4">
+      <h2>{{t 'categories'}}</h2>
+      <div class="categories-list">
+        {{#each section.categories}}
+        <a href="{{url}}" class="category-card">
+          <h3 class="category-card__title">{{name}}</h3>
+          {{#if description}}
+          <p class="category-card__description">{{description}}</p>
+          {{/if}}
+          {{#if articles}}
+          <p class="category-card__count text-muted">{{articles.length}} {{t 'articles'}}</p>
+          {{/if}}
+        </a>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{#if section.articles}}
+    <section class="articles-section mt-4">
+      <h2>{{t 'articles'}}</h2>
+      <div class="articles-list">
+        {{#each section.articles}}
+        <a href="{{url}}" class="article-item">
+          <h3>{{title}}</h3>
+          {{#if body}}
+          <p class="text-muted">{{excerpt body characters=120}}</p>
+          {{/if}}
+        </a>
+        {{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    {{#unless section.categories}}
+    {{#unless section.articles}}
+    <div class="empty-state mt-4">
+      <p class="text-muted">{{t 'no_content_in_section'}}</p>
+    </div>
+    {{/unless}}
+    {{/unless}}
+  </div>
+</div>

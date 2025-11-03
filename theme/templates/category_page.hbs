@@ -1,0 +1,53 @@
+{{!--
+  KnowAll AI - Zapdesk Theme
+  Category Page Template
+--}}
+
+<div class="category-page">
+  <div class="container">
+    <nav class="breadcrumbs mt-3">
+      <a href="{{help_center.url}}">{{help_center.name}}</a>
+      {{#if section}}
+      <span class="breadcrumb-separator">›</span>
+      <a href="{{section.url}}">{{section.name}}</a>
+      {{/if}}
+      <span class="breadcrumb-separator">›</span>
+      <span>{{category.name}}</span>
+    </nav>
+
+    <header class="category-header mt-4">
+      <h1>{{category.name}}</h1>
+      {{#if category.description}}
+      <p class="category-description text-muted">{{category.description}}</p>
+      {{/if}}
+    </header>
+
+    {{#if category.articles}}
+    <section class="articles-list mt-4">
+      <h2>{{t 'articles'}}</h2>
+      <div class="articles-grid">
+        {{#each category.articles}}
+        <a href="{{url}}" class="article-card">
+          <h3 class="article-card__title">{{title}}</h3>
+          {{#if body}}
+          <p class="article-card__excerpt">{{excerpt body characters=150}}</p>
+          {{/if}}
+          <div class="article-card__meta text-muted">
+            {{#if author}}
+            <span>{{author.name}}</span>
+            {{/if}}
+            {{#if created_at}}
+            <span> • {{date created_at timeago=true}}</span>
+            {{/if}}
+          </div>
+        </a>
+        {{/each}}
+      </div>
+    </section>
+    {{else}}
+    <div class="empty-state mt-4">
+      <p class="text-muted">{{t 'no_articles_in_category'}}</p>
+    </div>
+    {{/if}}
+  </div>
+</div>
