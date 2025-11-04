@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import TipButton from './components/TipButton'
 import PaymentModal from './components/PaymentModal'
 import { generateLNURL } from './utils/lnurl'
-import { fetchAgentLightningAddress } from './utils/zendesk'
+import { fetchAgentLightningAddress, postTipComment } from './utils/zendesk'
 
 function App({ config }) {
   const [showModal, setShowModal] = useState(false)
@@ -11,6 +11,8 @@ function App({ config }) {
   const [error, setError] = useState(null)
   const [lightningAddress, setLightningAddress] = useState(null)
   const [fetchingAddress, setFetchingAddress] = useState(false)
+  const [message, setMessage] = useState('')
+  const [postingComment, setPostingComment] = useState(false)
 
   const {
     apiBase = '',
@@ -131,6 +133,24 @@ function App({ config }) {
 
       setLnurl(lnurlData)
       setShowModal(true)
+
+      // Post message as public comment if provided
+      if (message && message.trim() && requestId) {
+        console.log('📝 Posting tip message as comment...')
+        setPostingComment(true)
+
+        try {
+          await postTipComment(requestId, message, amount, agentName)
+          console.log('✅ Comment posted successfully!')
+          // Clear message after successful post
+          setMessage('')
+        } catch (commentError) {
+          console.error('⚠️ Failed to post comment, but invoice was generated:', commentError)
+          // Don't fail the whole flow if comment posting fails
+        } finally {
+          setPostingComment(false)
+        }
+      }
     } catch (err) {
       console.error('❌ Failed to generate LNURL:', err)
       console.error('Error details:', err.message)
@@ -163,6 +183,67 @@ function App({ config }) {
               ✅ Lightning payments ready
             </p>
           )}
+        </div>
+      </div>
+
+      {/* Message textarea */}
+      <div className="zapdesk-message-container" style={{marginTop: '1rem'}}>
+        <label
+          htmlFor="tip-message"
+          style={{
+            display: 'block',
+            color: '#F9FAFB',
+            fontSize: '0.9rem',
+            fontWeight: 500,
+            marginBottom: '0.5rem'
+          }}
+        >
+          Add a message (optional)
+        </label>
+        <textarea
+          id="tip-message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Thank you for your help!"
+          maxLength={500}
+          disabled={loading}
+          style={{
+            width: '100%',
+            minHeight: '80px',
+            padding: '0.75rem',
+            background: '#1F2937',
+            border: '1px solid #374151',
+            borderRadius: '6px',
+            color: '#F9FAFB',
+            fontSize: '0.9rem',
+            fontFamily: 'inherit',
+            resize: 'vertical',
+            outline: 'none',
+            transition: 'border-color 0.2s',
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#84CC16'}
+          onBlur={(e) => e.target.style.borderColor = '#374151'}
+        />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '0.25rem'
+        }}>
+          <p style={{
+            fontSize: '0.75rem',
+            color: '#9CA3AF',
+            margin: 0
+          }}>
+            Your message will be posted as a public comment on this ticket
+          </p>
+          <p style={{
+            fontSize: '0.75rem',
+            color: message.length > 450 ? '#F59E0B' : '#6B7280',
+            margin: 0
+          }}>
+            {message.length}/500
+          </p>
         </div>
       </div>
 
@@ -203,7 +284,7 @@ function App({ config }) {
       {loading && (
         <div className="zapdesk-loading">
           <div className="zapdesk-spinner"></div>
-          <p>Generating payment request...</p>
+          <p>{postingComment ? 'Posting your message...' : 'Generating payment request...'}</p>
         </div>
       )}
 
