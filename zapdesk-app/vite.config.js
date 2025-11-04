@@ -18,7 +18,7 @@ export default defineConfig({
         entryFileNames: 'zapdesk-app.bundle.js'
       }
     },
-    outDir: '../theme/assets',
+    outDir: '../theme-copenhagen/assets',
     emptyOutDir: false,
     cssCodeSplit: false
   },

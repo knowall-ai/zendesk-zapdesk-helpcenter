@@ -53,12 +53,30 @@ function PaymentModal({ lnurl, onClose }) {
             )}
           </div>
 
+          {lnurl.recipient && (
+            <div className="zapdesk-payment-info" style={{marginBottom: '1rem'}}>
+              <p className="zapdesk-payment-label">Recipient</p>
+              <p className="zapdesk-payment-value" style={{color: '#84CC16', fontWeight: 600}}>
+                {lnurl.recipient}
+              </p>
+            </div>
+          )}
+
           <div className="zapdesk-payment-info">
             <p className="zapdesk-payment-label">Amount</p>
             <p className="zapdesk-payment-amount">
               {lnurl.amount} sats
             </p>
           </div>
+
+          {lnurl.description && (
+            <div className="zapdesk-payment-info" style={{marginTop: '0.5rem'}}>
+              <p className="zapdesk-payment-label">Description</p>
+              <p className="zapdesk-payment-value" style={{fontSize: '0.9rem', color: '#9CA3AF'}}>
+                {lnurl.description}
+              </p>
+            </div>
+          )}
 
           <div className="zapdesk-invoice-container">
             <p className="zapdesk-payment-label">Lightning Invoice</p>
@@ -76,10 +94,16 @@ function PaymentModal({ lnurl, onClose }) {
           <div className="zapdesk-instructions">
             <h4>How to pay:</h4>
             <ol>
-              <li>Open your Lightning wallet app</li>
-              <li>Scan the QR code or paste the invoice</li>
+              <li>Open your Lightning wallet app (Phoenix, Wallet of Satoshi, Muun, etc.)</li>
+              <li>Scan the QR code above or paste the invoice below</li>
+              <li>Verify the amount and recipient</li>
               <li>Confirm the payment</li>
             </ol>
+            {lnurl.note && (
+              <p style={{marginTop: '1rem', padding: '0.75rem', background: '#1F2937', borderRadius: '6px', fontSize: '0.85rem', color: '#D1D5DB'}}>
+                ℹ️ {lnurl.note}
+              </p>
+            )}
           </div>
         </div>
 
