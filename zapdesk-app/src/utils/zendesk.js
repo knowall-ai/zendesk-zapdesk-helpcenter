@@ -81,140 +81,118 @@ export async function fetchCurrentUser() {
 }
 
 /**
- * Get CSRF token from the page
- * Zendesk includes it in meta tags or forms
- */
-function getCSRFToken() {
-  console.log('🔍 Searching for CSRF token...')
-
-  // Try to get from meta tag (most common in Zendesk)
-  const metaTag = document.querySelector('meta[name="csrf-token"]')
-  console.log('Meta tag with name="csrf-token":', metaTag)
-  if (metaTag) {
-    const token = metaTag.getAttribute('content')
-    console.log('✅ Found CSRF token in meta tag:', token?.substring(0, 20) + '...')
-    return token
-  }
-
-  // Try alternative meta tag names
-  const altMetaTag = document.querySelector('meta[name="csrf_token"]')
-  console.log('Meta tag with name="csrf_token":', altMetaTag)
-  if (altMetaTag) {
-    const token = altMetaTag.getAttribute('content')
-    console.log('✅ Found CSRF token in alt meta tag:', token?.substring(0, 20) + '...')
-    return token
-  }
-
-  // Try to get from form inputs in comment form
-  const tokenInput = document.querySelector('input[name="authenticity_token"]')
-  console.log('Input with name="authenticity_token":', tokenInput)
-  if (tokenInput) {
-    const token = tokenInput.value
-    console.log('✅ Found CSRF token in form input:', token?.substring(0, 20) + '...')
-    return token
-  }
-
-  // Try alternative input name
-  const altTokenInput = document.querySelector('input[name="csrf_token"]')
-  console.log('Input with name="csrf_token":', altTokenInput)
-  if (altTokenInput) {
-    const token = altTokenInput.value
-    console.log('✅ Found CSRF token in alt form input:', token?.substring(0, 20) + '...')
-    return token
-  }
-
-  // Check all meta tags
-  console.log('All meta tags:', document.querySelectorAll('meta'))
-
-  // Check all forms
-  console.log('All forms on page:', document.querySelectorAll('form'))
-
-  console.error('❌ CSRF token not found in page')
-  return null
-}
-
-/**
- * Post a public comment to a Zendesk request
- * @param {string|number} requestId - The Zendesk request ID
- * @param {string} message - The comment message
+ * Auto-fill Zendesk's native comment form with tip message
+ * This works around CSRF restrictions by using the existing form
+ * @param {string} message - The user's message
  * @param {number} amount - The tip amount in sats
  * @param {string} agentName - Name of the agent being tipped
- * @returns {Promise<Object|null>} - Comment data or null
+ * @returns {Promise<boolean>} - Success status
  */
-export async function postTipComment(requestId, message, amount, agentName) {
-  console.log('=== POSTING TIP COMMENT TO ZENDESK ===')
-  console.log('Request ID:', requestId)
+export async function fillCommentForm(message, amount, agentName) {
+  console.log('=== AUTO-FILLING COMMENT FORM ===')
   console.log('Amount:', amount, 'sats')
   console.log('Agent:', agentName)
   console.log('Message:', message)
 
-  if (!requestId) {
-    console.error('❌ No request ID provided')
-    return null
-  }
-
   try {
-    // Get CSRF token
-    const csrfToken = getCSRFToken()
-    console.log('CSRF Token:', csrfToken ? 'Found' : 'Not found')
+    // Step 1: Click "Add to conversation" button if it exists
+    console.log('🔍 Looking for "Add to conversation" button...')
+    const addToConversationBtn = document.querySelector('.comment-show-container') ||
+                                  document.querySelector('button:contains("Add to conversation")') ||
+                                  document.querySelector('[class*="comment-show"]')
 
-    // Build the comment body
-    let commentBody = `⚡ **Lightning Tip: ${amount} sats**\n\n`
+    if (addToConversationBtn) {
+      console.log('✅ Found "Add to conversation" button, clicking it...')
+      addToConversationBtn.click()
+      // Wait for the form to appear
+      await new Promise(resolve => setTimeout(resolve, 500))
+    } else {
+      console.log('ℹ️ No "Add to conversation" button found (form may already be visible)')
+    }
+
+    // Step 2: Find the CKEditor instance
+    console.log('🔍 Looking for CKEditor...')
+
+    // Find the CKEditor contenteditable div
+    const ckEditor = document.querySelector('.ck-editor__editable[contenteditable="true"]') ||
+                     document.querySelector('[role="textbox"][contenteditable="true"]') ||
+                     document.querySelector('.ck-content[contenteditable="true"]')
+
+    if (!ckEditor) {
+      console.error('❌ Could not find CKEditor on page')
+      console.log('Looking for contenteditable elements:', document.querySelectorAll('[contenteditable="true"]'))
+      return false
+    }
+
+    console.log('✅ Found CKEditor:', ckEditor)
+    console.log('   Class:', ckEditor.className)
+    console.log('   Aria-label:', ckEditor.getAttribute('aria-label'))
+
+    // Build the comment body (HTML format for CKEditor)
+    let commentHTML = `<p><strong>⚡ Lightning Tip: ${amount} sats</strong></p>`
 
     if (agentName) {
-      commentBody += `Thank you ${agentName}!\n\n`
+      commentHTML += `<p>Thank you ${agentName}!</p>`
     }
 
     if (message && message.trim()) {
-      commentBody += `${message.trim()}\n\n`
-    }
-
-    commentBody += `---\n*Sent via Lightning Network*`
-
-    console.log('Comment body:', commentBody)
-
-    // Build headers
-    const headers = {
-      'Content-Type': 'application/json'
-    }
-
-    // Add CSRF token if available
-    if (csrfToken) {
-      headers['X-CSRF-Token'] = csrfToken
-    }
-
-    console.log('Request headers:', headers)
-
-    // Post comment to Zendesk API
-    const response = await fetch(`/api/v2/requests/${requestId}/comments.json`, {
-      method: 'POST',
-      headers: headers,
-      credentials: 'same-origin', // Include cookies for authentication
-      body: JSON.stringify({
-        request: {
-          comment: {
-            body: commentBody,
-            public: true
-          }
-        }
+      // Split message by newlines and wrap each in <p> tags
+      const lines = message.trim().split('\n').filter(line => line.trim())
+      lines.forEach(line => {
+        commentHTML += `<p>${line}</p>`
       })
-    })
-
-    console.log('Zendesk API response status:', response.status)
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('❌ Failed to post comment:', response.status, errorText)
-      throw new Error(`Failed to post comment: ${response.status}`)
     }
 
-    const data = await response.json()
-    console.log('✅ Comment posted successfully:', data)
+    commentHTML += `<hr><p><em>Sent via Lightning Network</em></p>`
 
-    return data
+    console.log('📝 Setting CKEditor content:', commentHTML)
+
+    // Clear existing content
+    ckEditor.innerHTML = ''
+
+    // Set the new HTML content
+    ckEditor.innerHTML = commentHTML
+
+    // Trigger input event to notify CKEditor of the change
+    ckEditor.dispatchEvent(new Event('input', { bubbles: true }))
+    ckEditor.dispatchEvent(new Event('change', { bubbles: true }))
+
+    // Focus the editor
+    ckEditor.focus()
+
+    // Scroll to the editor
+    ckEditor.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+    // Highlight the editor briefly
+    const originalBorder = ckEditor.style.border
+    const originalBackground = ckEditor.style.backgroundColor
+    ckEditor.style.border = '3px solid #84CC16'
+    ckEditor.style.backgroundColor = '#F0FDF4'
+    ckEditor.style.transition = 'all 0.3s'
+
+    setTimeout(() => {
+      ckEditor.style.border = originalBorder
+      ckEditor.style.backgroundColor = originalBackground
+    }, 3000)
+
+    // Also update the hidden textarea for good measure
+    const hiddenTextarea = document.querySelector('#request_comment_body') ||
+                          document.querySelector('textarea[name="request[comment][body]"]')
+
+    if (hiddenTextarea) {
+      console.log('📝 Also updating hidden textarea')
+      hiddenTextarea.value = commentHTML
+    }
+
+    console.log('✅ Comment form auto-filled successfully!')
+    console.log('💡 User needs to click "Submit" to post the comment')
+    console.log('📍 Content in CKEditor:', ckEditor.innerHTML.substring(0, 100) + '...')
+
+    return true
   } catch (error) {
-    console.error('❌ Error posting comment:', error)
+    console.error('❌ Error filling comment form:', error)
     console.error('Error message:', error.message)
-    throw error
+    console.error('Stack:', error.stack)
+    return false
   }
 }

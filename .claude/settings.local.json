@@ -15,7 +15,8 @@
       "Bash(npm run build:*)",
       "Bash(zcli themes:publish:*)",
       "Bash(zcli themes:list:*)",
-      "Bash(zcli themes:import:*)"
+      "Bash(zcli themes:import:*)",
+      "Bash(zcli themes:update:*)"
     ],
     "deny": [],
     "ask": []

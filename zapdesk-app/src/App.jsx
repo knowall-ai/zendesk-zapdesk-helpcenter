@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import TipButton from './components/TipButton'
 import PaymentModal from './components/PaymentModal'
 import { generateLNURL } from './utils/lnurl'
-import { fetchAgentLightningAddress, postTipComment } from './utils/zendesk'
+import { fetchAgentLightningAddress, fillCommentForm } from './utils/zendesk'
 
 function App({ config }) {
   const [showModal, setShowModal] = useState(false)
@@ -134,19 +134,24 @@ function App({ config }) {
       setLnurl(lnurlData)
       setShowModal(true)
 
-      // Post message as public comment if provided
+      // Auto-fill message in comment form if provided
       if (message && message.trim() && requestId) {
-        console.log('📝 Posting tip message as comment...')
+        console.log('📝 Auto-filling comment form with tip message...')
         setPostingComment(true)
 
         try {
-          await postTipComment(requestId, message, amount, agentName)
-          console.log('✅ Comment posted successfully!')
-          // Clear message after successful post
-          setMessage('')
+          const success = await fillCommentForm(message, amount, agentName)
+          if (success) {
+            console.log('✅ Comment form auto-filled successfully!')
+            console.log('💡 Please scroll down and click Submit to post your comment')
+            // Clear message after successful auto-fill
+            setMessage('')
+          } else {
+            console.warn('⚠️ Could not auto-fill comment form')
+          }
         } catch (commentError) {
-          console.error('⚠️ Failed to post comment, but invoice was generated:', commentError)
-          // Don't fail the whole flow if comment posting fails
+          console.error('⚠️ Failed to auto-fill comment form, but invoice was generated:', commentError)
+          // Don't fail the whole flow if auto-fill fails
         } finally {
           setPostingComment(false)
         }
@@ -284,7 +289,7 @@ function App({ config }) {
       {loading && (
         <div className="zapdesk-loading">
           <div className="zapdesk-spinner"></div>
-          <p>{postingComment ? 'Posting your message...' : 'Generating payment request...'}</p>
+          <p>{postingComment ? 'Auto-filling comment form...' : 'Generating payment request...'}</p>
         </div>
       )}
 
